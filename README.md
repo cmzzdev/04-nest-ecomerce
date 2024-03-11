@@ -24,3 +24,8 @@ docker-compose up -d
 ```
 yarn start:dev
 ```
+
+7. Load fake Data
+```
+http://localhost:3000/api/seed
+```
