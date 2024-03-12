@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
@@ -10,8 +11,6 @@ import { validate as isUUID } from 'uuid';
 @Injectable()
 export class ProductsService {
 
-  private readonly logger = new Logger('ProductsService')
-
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -20,7 +19,13 @@ export class ProductsService {
     private readonly producImageRepository: Repository<ProductImage>,
 
     private readonly dataSource: DataSource,
+    private readonly configService: ConfigService,
+  
   ){}
+
+  private readonly logger = new Logger('ProductsService')
+
+  private readonly pathImages: string = `${this.configService.get('HOST_API')}/files/product/`
 
   async create(createProductDto: CreateProductDto) {
     try {
@@ -49,7 +54,7 @@ export class ProductsService {
     });
     return products.map(product => ({
       ...product,
-      images: product.images.map(img => img.url)
+      images: product.images.map(img => this.pathImages + img.url)
     }))
   }
 
@@ -68,11 +73,13 @@ export class ProductsService {
         })
         .leftJoinAndSelect('productTable.images', 'productImages')
         .getOne();
+      
+      product.images.map(img => this.pathImages + img.url)
     }
 
     if(!product) 
       throw new NotFoundException(`Product with id or slug: ${term} not found`)
-
+    
     return product
   }
 
@@ -80,7 +87,7 @@ export class ProductsService {
     const { images = [], ...rest} = await this.findOne(term) 
     return {
       ...rest,
-      images: images.map(img => img.url)
+      images: images.map(img => this.pathImages + img.url)
     }
   }
 
