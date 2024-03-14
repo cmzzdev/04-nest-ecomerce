@@ -29,3 +29,7 @@ yarn start:dev
 ```
 http://localhost:3000/api/seed
 ```
+
+## Documentation
+
+1. Postman: https://documenter.getpostman.com/view/8754528/2sA2xmUAkU
