@@ -2,11 +2,12 @@ import { ConfigService } from '@nestjs/config';
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import { validate as isUUID } from 'uuid';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product, ProductImage } from './entities';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { validate as isUUID } from 'uuid';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class ProductsService {
@@ -27,17 +28,18 @@ export class ProductsService {
 
   private readonly pathImages: string = `${this.configService.get('HOST_API')}/files/product/`
 
-  async create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto, user: User) {
     try {
 
       const { images = [], ...productDetails } = createProductDto;
 
       const product = this.productRepository.create({
         ...productDetails,
-        images: images.map(image => this.producImageRepository.create({url: image}))
+        images: images.map(image => this.producImageRepository.create({url: image})),
+        user,
       });
       await this.productRepository.save(product);
-      return product;
+      return { ...product, images};
     } catch (error) {
       this.handleDBExecptions(error)
     }
@@ -91,7 +93,7 @@ export class ProductsService {
     }
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(id: string, updateProductDto: UpdateProductDto, user: User) {
 
     const { images, ...toUpdate } = updateProductDto;
 
@@ -113,7 +115,7 @@ export class ProductsService {
         // set new images into the product
         product.images = images.map(image => this.producImageRepository.create({url: image}))
       } 
-
+      product.user = user;
       await queryRunner.manager.save(product)
 
       await queryRunner.commitTransaction()
