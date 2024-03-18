@@ -34,4 +34,9 @@ http://localhost:3000/api/seed
 
 1. Postman: https://documenter.getpostman.com/view/8754528/2sA2xmUAkU
 
-2. Swagger: http://localhost:3000/api
+  Postman api endpoints collection:
+```
+Nest Ecomerce.postman_collection.json
+```
+
+2. Swagger UI: http://localhost:3000/api
